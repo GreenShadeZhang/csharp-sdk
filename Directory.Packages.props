@@ -8,10 +8,12 @@
 
   <!-- Product dependencies shared -->
   <ItemGroup>
+    <!-- AI packages use 10.x for latest features -->
     <PackageVersion Include="Microsoft.Extensions.AI" Version="$(System10Version)" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(System10Version)" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(System10Version)" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(System10Version)" />
+    <!-- Hosting and Logging use 9.x to avoid downgrade warnings in .NET 9 applications -->
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(System9Version)" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(System9Version)" />
   </ItemGroup>
 
   <!-- Product dependencies < .NET 10 -->

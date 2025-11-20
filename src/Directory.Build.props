@@ -2,21 +2,28 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <PackageProjectUrl>https://github.com/modelcontextprotocol/csharp-sdk</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/modelcontextprotocol/csharp-sdk</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/GreenShadeZhang/csharp-sdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/GreenShadeZhang/csharp-sdk</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <VersionPrefix>0.4.0</VersionPrefix>
-    <VersionSuffix>preview.4</VersionSuffix>
-    <Authors>ModelContextProtocolOfficial</Authors>
-    <Copyright>© Anthropic and Contributors.</Copyright>
-    <PackageTags>ModelContextProtocol;mcp;ai;llm</PackageTags>
+    <VersionSuffix>verdure.4</VersionSuffix>
+    <Authors>GreenShadeZhang (based on ModelContextProtocol Official)</Authors>
+    <Copyright>© Anthropic and Contributors. Modified by GreenShadeZhang.</Copyright>
+    <PackageTags>ModelContextProtocol;mcp;ai;llm;verdure</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>IMPORTANT_FIXES.md</PackageReadmeFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <AssemblyOriginatorKeyFile>$(RepoRoot)\Open.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
+    <PackageReleaseNotes>
+Custom build based on official 0.4.0-preview.4 with important fixes:
+- Pagination infinite loop protection (empty cursor handling)
+- Content-Type charset compatibility (OmitContentTypeCharset option)
+See IMPORTANT_FIXES.md for details.
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,5 +36,6 @@
 
   <ItemGroup>
     <None Include="$(RepoRoot)\logo.png" Pack="true" PackagePath="\" />
+    <None Include="$(RepoRoot)\docs\IMPORTANT_FIXES.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
