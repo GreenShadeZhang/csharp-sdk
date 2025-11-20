@@ -82,8 +82,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
 
         List<McpClientTool>? tools = null;
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var toolResults = await SendRequestAsync(
                 RequestMethods.ToolsList,
                 new() { Cursor = cursor },
@@ -91,13 +99,24 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 McpJsonUtilities.JsonContext.Default.ListToolsResult,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            tools ??= new List<McpClientTool>(toolResults.Tools.Count);
+            tools ??= new List<McpClientTool>();
             foreach (var tool in toolResults.Tools)
             {
                 tools.Add(new McpClientTool(this, tool, serializerOptions));
             }
 
-            cursor = toolResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(toolResults.NextCursor) ? null : toolResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
 
@@ -118,8 +137,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
         serializerOptions.MakeReadOnly();
 
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var toolResults = await SendRequestAsync(
                 RequestMethods.ToolsList,
                 new() { Cursor = cursor },
@@ -132,7 +159,18 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 yield return new McpClientTool(this, tool, serializerOptions);
             }
 
-            cursor = toolResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(toolResults.NextCursor) ? null : toolResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
     }
@@ -147,8 +185,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
     {
         List<McpClientPrompt>? prompts = null;
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var promptResults = await SendRequestAsync(
                 RequestMethods.PromptsList,
                 new() { Cursor = cursor },
@@ -156,13 +202,24 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 McpJsonUtilities.JsonContext.Default.ListPromptsResult,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            prompts ??= new List<McpClientPrompt>(promptResults.Prompts.Count);
+            prompts ??= new List<McpClientPrompt>();
             foreach (var prompt in promptResults.Prompts)
             {
                 prompts.Add(new McpClientPrompt(this, prompt));
             }
 
-            cursor = promptResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(promptResults.NextCursor) ? null : promptResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
 
@@ -178,8 +235,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var promptResults = await SendRequestAsync(
                 RequestMethods.PromptsList,
                 new() { Cursor = cursor },
@@ -192,7 +257,18 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 yield return new(this, prompt);
             }
 
-            cursor = promptResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(promptResults.NextCursor) ? null : promptResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
     }
@@ -235,8 +311,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
         List<McpClientResourceTemplate>? resourceTemplates = null;
 
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var templateResults = await SendRequestAsync(
                 RequestMethods.ResourcesTemplatesList,
                 new() { Cursor = cursor },
@@ -244,13 +328,24 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 McpJsonUtilities.JsonContext.Default.ListResourceTemplatesResult,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            resourceTemplates ??= new List<McpClientResourceTemplate>(templateResults.ResourceTemplates.Count);
+            resourceTemplates ??= new List<McpClientResourceTemplate>();
             foreach (var template in templateResults.ResourceTemplates)
             {
                 resourceTemplates.Add(new McpClientResourceTemplate(this, template));
             }
 
-            cursor = templateResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(templateResults.NextCursor) ? null : templateResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
 
@@ -266,8 +361,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var templateResults = await SendRequestAsync(
                 RequestMethods.ResourcesTemplatesList,
                 new() { Cursor = cursor },
@@ -280,7 +383,18 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 yield return new McpClientResourceTemplate(this, templateResult);
             }
 
-            cursor = templateResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(templateResults.NextCursor) ? null : templateResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
     }
@@ -296,8 +410,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
         List<McpClientResource>? resources = null;
 
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var resourceResults = await SendRequestAsync(
                 RequestMethods.ResourcesList,
                 new() { Cursor = cursor },
@@ -305,13 +427,24 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 McpJsonUtilities.JsonContext.Default.ListResourcesResult,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            resources ??= new List<McpClientResource>(resourceResults.Resources.Count);
+            resources ??= new List<McpClientResource>();
             foreach (var resource in resourceResults.Resources)
             {
                 resources.Add(new McpClientResource(this, resource));
             }
 
-            cursor = resourceResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(resourceResults.NextCursor) ? null : resourceResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
 
@@ -327,8 +460,16 @@ public abstract partial class McpClient : McpSession, IMcpClient
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string? cursor = null;
+        HashSet<string>? seenCursors = null;
+        int pageCount = 0;
+        const int MaxPages = 10000;
         do
         {
+            if (++pageCount > MaxPages)
+            {
+                throw new McpProtocolException("Pagination exceeded maximum page limit. The server may be returning invalid cursors.", McpErrorCode.InternalError);
+            }
+
             var resourceResults = await SendRequestAsync(
                 RequestMethods.ResourcesList,
                 new() { Cursor = cursor },
@@ -341,7 +482,18 @@ public abstract partial class McpClient : McpSession, IMcpClient
                 yield return new McpClientResource(this, resource);
             }
 
-            cursor = resourceResults.NextCursor;
+            // Normalize empty string to null to handle non-compliant servers
+            cursor = string.IsNullOrEmpty(resourceResults.NextCursor) ? null : resourceResults.NextCursor;
+
+            // Detect cursor cycles to prevent infinite loops
+            if (cursor is not null)
+            {
+                seenCursors ??= new HashSet<string>();
+                if (!seenCursors.Add(cursor))
+                {
+                    throw new McpProtocolException($"Server returned duplicate cursor '{cursor}' in pagination, which may indicate a server error.", McpErrorCode.InternalError);
+                }
+            }
         }
         while (cursor is not null);
     }
