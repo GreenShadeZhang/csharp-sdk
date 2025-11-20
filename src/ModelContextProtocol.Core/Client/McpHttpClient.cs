@@ -10,7 +10,7 @@ using System.Text.Json;
 
 namespace ModelContextProtocol.Client;
 
-internal class McpHttpClient(HttpClient httpClient)
+internal class McpHttpClient(HttpClient httpClient, bool omitContentTypeCharset = false)
 {
     internal virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, JsonRpcMessage? message, CancellationToken cancellationToken)
     {
@@ -30,13 +30,22 @@ internal class McpHttpClient(HttpClient httpClient)
         }
 
 #if NET
-        return JsonContent.Create(message, McpJsonUtilities.JsonContext.Default.JsonRpcMessage);
+        var content = JsonContent.Create(message, McpJsonUtilities.JsonContext.Default.JsonRpcMessage);
+        if (omitContentTypeCharset && content.Headers.ContentType is not null)
+        {
+            // Remove charset parameter to support servers that reject "application/json; charset=utf-8"
+            content.Headers.ContentType.CharSet = null;
+        }
+        return content;
 #else
-        return new StringContent(
-            JsonSerializer.Serialize(message, McpJsonUtilities.JsonContext.Default.JsonRpcMessage),
-            Encoding.UTF8,
-            "application/json"
-        );
+        var json = JsonSerializer.Serialize(message, McpJsonUtilities.JsonContext.Default.JsonRpcMessage);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        if (omitContentTypeCharset && content.Headers.ContentType is not null)
+        {
+            // Remove charset parameter to support servers that reject "application/json; charset=utf-8"
+            content.Headers.ContentType.CharSet = null;
+        }
+        return content;
 #endif
     }
 }

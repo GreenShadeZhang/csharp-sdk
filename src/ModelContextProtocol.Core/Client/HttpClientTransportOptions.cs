@@ -77,4 +77,19 @@ public sealed class HttpClientTransportOptions
     /// Gets sor sets the authorization provider to use for authentication.
     /// </summary>
     public ClientOAuthOptions? OAuth { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether to omit the charset parameter from the Content-Type header.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// By default, HTTP requests include "Content-Type: application/json; charset=utf-8".
+    /// Some servers may reject requests with the charset parameter.
+    /// </para>
+    /// <para>
+    /// When set to <see langword="true"/>, the Content-Type header will be "application/json" without the charset parameter.
+    /// This is useful for servers that strictly validate Content-Type headers and don't accept charset parameters.
+    /// </para>
+    /// </remarks>
+    public bool OmitContentTypeCharset { get; set; }
 }
